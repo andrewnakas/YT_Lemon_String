@@ -1,0 +1,462 @@
+/* ========================================
+   Base Styles
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-normal);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: inherit;
+}
+
+input,
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    border: none;
+    outline: none;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* ========================================
+   App Container Layout
+   ======================================== */
+
+.app-container {
+    display: grid;
+    grid-template-areas:
+        "main"
+        "player";
+    grid-template-rows: 1fr auto;
+    grid-template-columns: 1fr;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    display: none; /* Hidden on mobile, shown on desktop */
+    grid-area: sidebar;
+    background-color: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+    border-right: 1px solid var(--divider-color);
+}
+
+.main-content {
+    grid-area: main;
+    background-color: var(--bg-primary);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: var(--spacing-md);
+}
+
+.player {
+    grid-area: player;
+    background-color: var(--bg-elevated);
+    border-top: 1px solid var(--divider-color);
+    box-shadow: var(--shadow-player);
+    z-index: var(--z-player);
+}
+
+/* ========================================
+   Sidebar
+   ======================================== */
+
+.logo h1 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-lg);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-lg);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    min-height: var(--min-touch-target);
+}
+
+.nav-item:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-highlight);
+}
+
+.nav-item.active {
+    color: var(--text-primary);
+    background-color: var(--bg-highlight);
+}
+
+.nav-item .icon {
+    font-size: var(--font-size-lg);
+}
+
+.playlists-list {
+    border-top: 1px solid var(--divider-color);
+    padding-top: var(--spacing-md);
+}
+
+/* ========================================
+   Mobile Header
+   ======================================== */
+
+.mobile-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--divider-color);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-elevated);
+}
+
+.menu-toggle {
+    font-size: var(--font-size-xl);
+    padding: var(--spacing-sm);
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* ========================================
+   Views
+   ======================================== */
+
+.view {
+    display: none;
+}
+
+.view.active {
+    display: block;
+}
+
+.placeholder-text {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: var(--spacing-xxl);
+    font-size: var(--font-size-lg);
+}
+
+/* Search View */
+.search-container {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+}
+
+.search-input {
+    flex: 1;
+    background-color: var(--bg-elevated);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    min-height: var(--min-touch-target);
+}
+
+.search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.search-button {
+    background-color: var(--accent);
+    color: var(--text-primary);
+    padding: 0 var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-semibold);
+    transition: background-color var(--transition-fast);
+    min-width: var(--min-touch-target);
+}
+
+.search-button:hover {
+    background-color: var(--accent-hover);
+}
+
+.search-button:active {
+    background-color: var(--accent-active);
+}
+
+.search-results {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+/* Library & Playlists Views */
+.library-grid,
+.playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md);
+}
+
+.playlists-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.playlists-header h2 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+}
+
+/* Queue View */
+.queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+}
+
+/* ========================================
+   Buttons
+   ======================================== */
+
+.btn-primary {
+    background-color: var(--accent);
+    color: var(--text-primary);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-fast);
+    min-height: var(--min-touch-target);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+    transform: scale(1.02);
+}
+
+.btn-primary:active {
+    background-color: var(--accent-active);
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    min-height: var(--min-touch-target);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-highlight);
+}
+
+/* ========================================
+   Modal
+   ======================================== */
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: var(--z-modal);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--bg-modal);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--divider-color);
+}
+
+.modal-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+}
+
+.modal-close {
+    font-size: var(--font-size-xxl);
+    color: var(--text-secondary);
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+}
+
+.modal-input,
+.modal-textarea {
+    width: 100%;
+    background-color: var(--bg-elevated);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.modal-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--divider-color);
+}
+
+/* ========================================
+   Loading Overlay
+   ======================================== */
+
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: var(--z-toast);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--bg-highlight);
+    border-top-color: var(--accent);
+    border-radius: var(--radius-round);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#loadingText {
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+}
+
+/* ========================================
+   Desktop Layout (Tablet and up)
+   ======================================== */
+
+@media (min-width: 768px) {
+    .app-container {
+        grid-template-areas:
+            "sidebar main"
+            "sidebar player";
+        grid-template-columns: var(--sidebar-width) 1fr;
+        grid-template-rows: 1fr auto;
+    }
+
+    .sidebar {
+        display: block;
+    }
+
+    .mobile-header {
+        display: none;
+    }
+
+    .main-content {
+        padding: var(--spacing-xl);
+    }
+
+    .library-grid,
+    .playlists-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="YouTube-based music player with Spotify-like interface">
+    <meta name="theme-color" content="#1db954">
+
+    <title>YT Lemon String - Music Player</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/icons/icon-72x72.png" type="image/png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/variables.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/mobile.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <h1>YT Lemon String</h1>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-view="search">
+                    <span class="icon">🔍</span>
+                    <span class="label">Search</span>
+                </button>
+                <button class="nav-item" data-view="library">
+                    <span class="icon">📚</span>
+                    <span class="label">Your Library</span>
+                </button>
+                <button class="nav-item" data-view="playlists">
+                    <span class="icon">📝</span>
+                    <span class="label">Playlists</span>
+                </button>
+            </nav>
+
+            <div class="playlists-list" id="playlistsList">
+                <!-- Playlists will be dynamically added here -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Mobile Header -->
+            <header class="mobile-header">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <h2 class="view-title">Search</h2>
+            </header>
+
+            <!-- Search View -->
+            <section class="view search-view active" id="searchView">
+                <div class="search-container">
+                    <input
+                        type="text"
+                        class="search-input"
+                        id="searchInput"
+                        placeholder="Search for songs or artists..."
+                        autocomplete="off"
+                    >
+                    <button class="search-button" id="searchButton">Search</button>
+                </div>
+
+                <div class="search-results" id="searchResults">
+                    <p class="placeholder-text">Search for your favorite music on YouTube</p>
+                </div>
+            </section>
+
+            <!-- Library View -->
+            <section class="view library-view" id="libraryView">
+                <h2>Your Library</h2>
+                <div class="library-grid" id="libraryGrid">
+                    <p class="placeholder-text">Your saved songs will appear here</p>
+                </div>
+            </section>
+
+            <!-- Playlists View -->
+            <section class="view playlists-view" id="playlistsView">
+                <div class="playlists-header">
+                    <h2>Your Playlists</h2>
+                    <button class="btn-primary" id="createPlaylistBtn">+ Create Playlist</button>
+                </div>
+                <div class="playlists-grid" id="playlistsGrid">
+                    <p class="placeholder-text">Create your first playlist to get started</p>
+                </div>
+            </section>
+
+            <!-- Queue View -->
+            <section class="view queue-view" id="queueView">
+                <h2>Play Queue</h2>
+                <div class="queue-list" id="queueList">
+                    <p class="placeholder-text">Your queue is empty</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Player -->
+        <div class="player" id="player">
+            <div class="player-left">
+                <img
+                    class="player-thumbnail"
+                    id="playerThumbnail"
+                    src="https://via.placeholder.com/300x300/282828/b3b3b3.png?text=Music"
+                    alt="Album art"
+                >
+                <div class="player-info">
+                    <div class="player-title" id="playerTitle">No song playing</div>
+                    <div class="player-artist" id="playerArtist">Select a song to start</div>
+                </div>
+                <button class="player-like" id="playerLike" aria-label="Add to library">♥</button>
+            </div>
+
+            <div class="player-center">
+                <div class="player-controls">
+                    <button class="control-btn" id="shuffleBtn" aria-label="Shuffle">
+                        <span>🔀</span>
+                    </button>
+                    <button class="control-btn" id="prevBtn" aria-label="Previous">
+                        <span>⏮</span>
+                    </button>
+                    <button class="control-btn control-btn-play" id="playPauseBtn" aria-label="Play">
+                        <span id="playPauseIcon">▶</span>
+                    </button>
+                    <button class="control-btn" id="nextBtn" aria-label="Next">
+                        <span>⏭</span>
+                    </button>
+                    <button class="control-btn" id="repeatBtn" aria-label="Repeat">
+                        <span>🔁</span>
+                    </button>
+                </div>
+
+                <div class="player-progress">
+                    <span class="time-current" id="timeCurrent">0:00</span>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                        <div class="progress-bar-handle" id="progressBarHandle"></div>
+                    </div>
+                    <span class="time-total" id="timeTotal">0:00</span>
+                </div>
+            </div>
+
+            <div class="player-right">
+                <button class="player-queue-btn" id="queueBtn" aria-label="Queue">
+                    <span>📋</span>
+                </button>
+                <button class="player-download-btn" id="downloadBtn" aria-label="Download">
+                    <span>⬇</span>
+                </button>
+                <div class="volume-control">
+                    <button class="volume-btn" id="volumeBtn" aria-label="Volume">
+                        <span id="volumeIcon">🔊</span>
+                    </button>
+                    <input
+                        type="range"
+                        class="volume-slider"
+                        id="volumeSlider"
+                        min="0"
+                        max="100"
+                        value="70"
+                    >
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden YouTube Player -->
+    <div id="youtubePlayer" style="display: none;"></div>
+
+    <!-- Modal for Create Playlist -->
+    <div class="modal" id="createPlaylistModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Playlist</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+            <div class="modal-body">
+                <input
+                    type="text"
+                    class="modal-input"
+                    id="playlistNameInput"
+                    placeholder="Playlist name"
+                    maxlength="50"
+                >
+                <textarea
+                    class="modal-textarea"
+                    id="playlistDescInput"
+                    placeholder="Description (optional)"
+                    maxlength="200"
+                ></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn-primary" id="modalCreate">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">Loading...</p>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/config.js"></script>
+    <script src="/js/utils/helpers.js"></script>
+    <script src="/js/utils/dom.js"></script>
+    <script src="/js/utils/storage.js"></script>
+    <script src="/js/api/backend.js"></script>
+    <script src="/js/components/player.js"></script>
+    <script src="/js/components/search.js"></script>
+    <script src="/js/components/library.js"></script>
+    <script src="/js/components/playlist.js"></script>
+    <script src="/js/components/queue.js"></script>
+    <script src="/js/app.js"></script>
+
+    <!-- YouTube iframe API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
