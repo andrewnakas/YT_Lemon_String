@@ -13,13 +13,19 @@ async function searchYouTube(query, maxResults = 20) {
     try {
         // Launch browser with headless mode
         browser = await puppeteer.launch({
-            headless: true,
+            headless: 'new',
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-accelerated-2d-canvas',
                 '--disable-gpu',
+                '--disable-software-rasterizer',
+                '--disable-dev-tools',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
                 '--window-size=1920x1080'
             ]
         });
@@ -104,9 +110,14 @@ async function searchYouTube(query, maxResults = 20) {
 
     } catch (error) {
         console.error('[Scraper] Error:', error.message);
+        console.error('[Scraper] Full error:', error);
 
         if (browser) {
-            await browser.close();
+            try {
+                await browser.close();
+            } catch (closeError) {
+                console.error('[Scraper] Error closing browser:', closeError);
+            }
         }
 
         throw new Error(`Scraping failed: ${error.message}`);

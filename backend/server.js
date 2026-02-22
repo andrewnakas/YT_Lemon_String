@@ -61,7 +61,7 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log('=================================');
     console.log('YT Lemon String Backend Server');
     console.log('=================================');
@@ -70,6 +70,21 @@ app.listen(PORT, () => {
     console.log(`Search API: http://localhost:${PORT}/api/search?q=query`);
     console.log(`Download API: http://localhost:${PORT}/api/download`);
     console.log('=================================');
+
+    // Test Puppeteer on startup
+    try {
+        const puppeteer = require('puppeteer');
+        const testBrowser = await puppeteer.launch({
+            headless: 'new',
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        await testBrowser.close();
+        console.log('✅ Puppeteer test successful');
+    } catch (error) {
+        console.error('❌ Puppeteer test failed:', error.message);
+        console.error('Chrome executable path:', process.env.PUPPETEER_EXECUTABLE_PATH);
+    }
 });
 
 // Graceful shutdown
