@@ -7,27 +7,24 @@ const RUNTIME_CACHE = 'yt-lemon-runtime-v1';
 
 // Files to cache on install
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/css/variables.css',
-    '/css/styles.css',
-    '/css/components.css',
-    '/css/mobile.css',
-    '/js/config.js',
-    '/js/utils/helpers.js',
-    '/js/utils/dom.js',
-    '/js/utils/storage.js',
-    '/js/api/backend.js',
-    '/js/components/player.js',
-    '/js/components/search.js',
-    '/js/components/library.js',
-    '/js/components/playlist.js',
-    '/js/components/queue.js',
-    '/js/app.js',
-    '/assets/icons/icon-192x192.png',
-    '/assets/icons/icon-512x512.png',
-    '/assets/images/placeholder.png'
+    './',
+    './index.html',
+    './manifest.json',
+    './css/variables.css',
+    './css/styles.css',
+    './css/components.css',
+    './css/mobile.css',
+    './js/config.js',
+    './js/utils/helpers.js',
+    './js/utils/dom.js',
+    './js/utils/storage.js',
+    './js/api/backend.js',
+    './js/components/player.js',
+    './js/components/search.js',
+    './js/components/library.js',
+    './js/components/playlist.js',
+    './js/components/queue.js',
+    './js/app.js'
 ];
 
 // Install event - cache static assets
@@ -89,7 +86,7 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Cache-first strategy for static assets
-    if (STATIC_ASSETS.includes(url.pathname) || url.pathname.startsWith('/assets/')) {
+    if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset.replace('./', ''))) || url.pathname.includes('/assets/')) {
         event.respondWith(
             caches.match(request)
                 .then((response) => {
@@ -115,7 +112,7 @@ self.addEventListener('fetch', (event) => {
 
                     // Return offline page for HTML requests
                     if (request.destination === 'document') {
-                        return caches.match('/index.html');
+                        return caches.match('./index.html');
                     }
                 })
         );
