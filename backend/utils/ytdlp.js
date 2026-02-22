@@ -5,9 +5,24 @@
 const YTDlpWrap = require('yt-dlp-wrap').default;
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
-// Initialize yt-dlp
-const ytDlpWrap = new YTDlpWrap();
+// Find yt-dlp binary
+function findYtDlpPath() {
+    try {
+        // Try to find yt-dlp in PATH
+        const ytdlpPath = execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
+        console.log(`[yt-dlp] Found binary at: ${ytdlpPath}`);
+        return ytdlpPath;
+    } catch (error) {
+        console.error('[yt-dlp] Binary not found in PATH');
+        return null;
+    }
+}
+
+// Initialize yt-dlp with binary path
+const ytdlpBinary = findYtDlpPath();
+const ytDlpWrap = ytdlpBinary ? new YTDlpWrap(ytdlpBinary) : new YTDlpWrap();
 
 /**
  * Download audio from YouTube video
@@ -18,7 +33,11 @@ async function downloadAudio(videoId) {
     try {
         console.log(`[yt-dlp] Downloading: ${videoUrl}`);
 
-        // Download options
+        if (!ytdlpBinary) {
+            throw new Error('yt-dlp binary not found. Please install with: pip3 install yt-dlp');
+        }
+
+        // Download options with SponsorBlock to remove ads/sponsors
         const options = [
             videoUrl,
             '-f', 'bestaudio',
@@ -27,18 +46,27 @@ async function downloadAudio(videoId) {
             '--audio-quality', '0', // Best quality
             '-o', '-', // Output to stdout
             '--no-playlist',
+            '--sponsorblock-remove', 'all', // Remove sponsor segments, intros, outros
             '--no-warnings',
-            '--quiet'
+            '--quiet',
+            '--no-check-certificate'
         ];
+
+        console.log(`[yt-dlp] Executing with options:`, options.slice(1).join(' '));
 
         // Execute yt-dlp and return stream
         const stream = ytDlpWrap.execStream(options);
 
+        // Handle stream errors
+        stream.on('error', (err) => {
+            console.error('[yt-dlp] Stream error:', err);
+        });
+
         return stream;
 
     } catch (error) {
-        console.error('[yt-dlp] Error:', error.message);
-        throw new Error(`Download failed: ${error.message}`);
+        console.error('[yt-dlp] Error:', error);
+        throw new Error(`Download failed: ${error.message || 'Unknown error'}`);
     }
 }
 

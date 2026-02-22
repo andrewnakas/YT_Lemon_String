@@ -9,6 +9,7 @@ require('dotenv').config();
 
 const searchRoute = require('./routes/search');
 const downloadRoute = require('./routes/download');
+const { checkInstalled } = require('./utils/ytdlp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,7 +62,7 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log('=================================');
     console.log('YT Lemon String Backend Server');
     console.log('=================================');
@@ -70,6 +71,16 @@ app.listen(PORT, () => {
     console.log(`Search API: http://localhost:${PORT}/api/search?q=query`);
     console.log(`Download API: http://localhost:${PORT}/api/download`);
     console.log('✅ Using lightweight scraper (no browser needed!)');
+
+    // Check yt-dlp installation
+    const ytdlpInstalled = await checkInstalled();
+    if (ytdlpInstalled) {
+        console.log('✅ yt-dlp is installed (downloads enabled with ad removal)');
+    } else {
+        console.log('❌ yt-dlp NOT installed (downloads will fail)');
+        console.log('   Run: pip3 install yt-dlp');
+    }
+
     console.log('=================================');
 });
 
