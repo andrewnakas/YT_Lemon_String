@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: pip3 install -q yt-dlp 2>/dev/null || true && npm start
     envVars:
       - key: NODE_ENV
         value: production

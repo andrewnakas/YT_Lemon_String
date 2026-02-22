@@ -78,6 +78,7 @@ async function checkInstalled() {
         return true;
     } catch (error) {
         console.error('[yt-dlp] Not installed or not accessible');
+        console.error('[yt-dlp] Run: pip3 install yt-dlp');
         return false;
     }
 }
