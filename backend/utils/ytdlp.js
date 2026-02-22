@@ -7,50 +7,67 @@ const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 
-// Find yt-dlp binary
-function findYtDlpPath() {
-    // First try 'which' command (will find it in virtualenv or system PATH)
+// Download directory for yt-dlp binary
+const YTDLP_DIR = path.join(__dirname, '../../.ytdlp');
+const YTDLP_PATH = path.join(YTDLP_DIR, 'yt-dlp');
+
+// Ensure download directory exists
+if (!fs.existsSync(YTDLP_DIR)) {
+    fs.mkdirSync(YTDLP_DIR, { recursive: true });
+}
+
+// Find or download yt-dlp binary
+async function ensureYtDlp() {
+    // First check if we already downloaded it
+    if (fs.existsSync(YTDLP_PATH)) {
+        console.log(`[yt-dlp] Using cached binary at: ${YTDLP_PATH}`);
+        return YTDLP_PATH;
+    }
+
+    // Try to find system yt-dlp
     try {
         const ytdlpPath = execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
         if (ytdlpPath && fs.existsSync(ytdlpPath)) {
-            console.log(`[yt-dlp] Found binary via 'which': ${ytdlpPath}`);
+            console.log(`[yt-dlp] Found system binary at: ${ytdlpPath}`);
             return ytdlpPath;
         }
     } catch (error) {
-        console.log('[yt-dlp] Binary not found via "which", trying common paths...');
+        console.log('[yt-dlp] System binary not found, downloading...');
     }
 
-    // Common paths where yt-dlp might be installed
-    const commonPaths = [
-        '/opt/render/project/.venv/bin/yt-dlp',  // Poetry virtualenv
-        '/opt/render/.local/bin/yt-dlp',         // User install
-        '/usr/local/bin/yt-dlp',                 // System install
-        '/usr/bin/yt-dlp',                       // System install
-        'yt-dlp'                                  // Let yt-dlp-wrap find it in PATH
-    ];
+    // Download yt-dlp using yt-dlp-wrap
+    try {
+        console.log('[yt-dlp] Downloading binary...');
+        await YTDlpWrap.downloadFromGithub(YTDLP_PATH);
 
-    // Try common paths
-    for (const checkPath of commonPaths) {
-        if (checkPath === 'yt-dlp') {
-            console.log(`[yt-dlp] Trying default: ${checkPath}`);
-            return checkPath;
-        }
-        if (fs.existsSync(checkPath)) {
-            console.log(`[yt-dlp] Found binary at: ${checkPath}`);
-            return checkPath;
-        } else {
-            console.log(`[yt-dlp] Not found at: ${checkPath}`);
-        }
+        // Make executable
+        fs.chmodSync(YTDLP_PATH, '755');
+
+        console.log(`[yt-dlp] Downloaded successfully to: ${YTDLP_PATH}`);
+        return YTDLP_PATH;
+    } catch (error) {
+        console.error('[yt-dlp] Failed to download:', error.message);
+        throw new Error('yt-dlp binary not available');
     }
-
-    console.error('[yt-dlp] Binary not found in any common location');
-    console.error('[yt-dlp] Checked paths:', commonPaths);
-    return null;
 }
 
-// Initialize yt-dlp with binary path
-const ytdlpBinary = findYtDlpPath();
-const ytDlpWrap = ytdlpBinary ? new YTDlpWrap(ytdlpBinary) : new YTDlpWrap();
+// Initialize - will be set on first use
+let ytDlpWrap = null;
+let initPromise = null;
+
+// Get or initialize yt-dlp wrapper
+async function getYtDlpWrap() {
+    if (ytDlpWrap) return ytDlpWrap;
+
+    if (!initPromise) {
+        initPromise = ensureYtDlp().then(binaryPath => {
+            ytDlpWrap = new YTDlpWrap(binaryPath);
+            return ytDlpWrap;
+        });
+    }
+
+    return initPromise;
+}
 
 /**
  * Download audio from YouTube video
@@ -61,9 +78,8 @@ async function downloadAudio(videoId) {
     try {
         console.log(`[yt-dlp] Downloading: ${videoUrl}`);
 
-        if (!ytdlpBinary) {
-            throw new Error('yt-dlp binary not found. Please install with: pip3 install yt-dlp');
-        }
+        // Ensure yt-dlp is available
+        const wrap = await getYtDlpWrap();
 
         // Download options with SponsorBlock to remove ads/sponsors
         const options = [
@@ -83,7 +99,7 @@ async function downloadAudio(videoId) {
         console.log(`[yt-dlp] Executing with options:`, options.slice(1).join(' '));
 
         // Execute yt-dlp and return stream
-        const stream = ytDlpWrap.execStream(options);
+        const stream = wrap.execStream(options);
 
         // Handle stream errors
         stream.on('error', (err) => {
@@ -107,7 +123,8 @@ async function getMetadata(videoId) {
     try {
         console.log(`[yt-dlp] Getting metadata: ${videoUrl}`);
 
-        const metadata = await ytDlpWrap.getVideoInfo(videoUrl);
+        const wrap = await getYtDlpWrap();
+        const metadata = await wrap.getVideoInfo(videoUrl);
 
         return {
             id: metadata.id,
@@ -125,22 +142,16 @@ async function getMetadata(videoId) {
 }
 
 /**
- * Check if yt-dlp is installed
+ * Check if yt-dlp is installed or can be downloaded
  */
 async function checkInstalled() {
     try {
-        if (!ytdlpBinary) {
-            console.error('[yt-dlp] Binary path not found');
-            return false;
-        }
-
-        const version = await ytDlpWrap.getVersion();
+        const wrap = await getYtDlpWrap();
+        const version = await wrap.getVersion();
         console.log(`[yt-dlp] Version: ${version}`);
-        console.log(`[yt-dlp] Binary path: ${ytdlpBinary}`);
         return true;
     } catch (error) {
-        console.error('[yt-dlp] Not installed or not accessible:', error.message);
-        console.error('[yt-dlp] Run: pip3 install yt-dlp');
+        console.error('[yt-dlp] Not available:', error.message);
         return false;
     }
 }
