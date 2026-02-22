@@ -4,10 +4,13 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: cd backend && npm install && pip install yt-dlp
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
         value: https://andrewnakas.github.io
+      - key: PORT
+        value: 10000
