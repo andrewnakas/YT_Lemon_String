@@ -5,8 +5,8 @@ services:
     region: oregon
     plan: free
     rootDir: backend
-    buildCommand: npm install
-    startCommand: pip3 install -q yt-dlp 2>/dev/null || true && npm start
+    buildCommand: npm install && pip3 install --user yt-dlp
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,3 +14,5 @@ services:
         value: https://andrewnakas.github.io
       - key: PORT
         value: 10000
+      - key: PATH
+        value: /opt/render/.local/bin:$PATH

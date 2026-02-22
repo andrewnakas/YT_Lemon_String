@@ -9,15 +9,39 @@ const { execSync } = require('child_process');
 
 // Find yt-dlp binary
 function findYtDlpPath() {
+    // Common paths where yt-dlp might be installed
+    const commonPaths = [
+        '/opt/render/.local/bin/yt-dlp',
+        '/usr/local/bin/yt-dlp',
+        '/usr/bin/yt-dlp',
+        'yt-dlp' // Let yt-dlp-wrap find it in PATH
+    ];
+
+    // First try 'which' command
     try {
-        // Try to find yt-dlp in PATH
         const ytdlpPath = execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
-        console.log(`[yt-dlp] Found binary at: ${ytdlpPath}`);
-        return ytdlpPath;
+        if (ytdlpPath && fs.existsSync(ytdlpPath)) {
+            console.log(`[yt-dlp] Found binary via 'which': ${ytdlpPath}`);
+            return ytdlpPath;
+        }
     } catch (error) {
-        console.error('[yt-dlp] Binary not found in PATH');
-        return null;
+        console.log('[yt-dlp] Binary not found via "which", trying common paths...');
     }
+
+    // Try common paths
+    for (const path of commonPaths) {
+        if (path === 'yt-dlp') {
+            console.log(`[yt-dlp] Trying default: ${path}`);
+            return path;
+        }
+        if (fs.existsSync(path)) {
+            console.log(`[yt-dlp] Found binary at: ${path}`);
+            return path;
+        }
+    }
+
+    console.error('[yt-dlp] Binary not found in any common location');
+    return null;
 }
 
 // Initialize yt-dlp with binary path
