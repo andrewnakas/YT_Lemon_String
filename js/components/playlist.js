@@ -95,7 +95,7 @@ class PlaylistComponent {
         const playlistWithSongs = await storage.getPlaylistWithSongs(playlistId);
 
         if (playlistWithSongs && playlistWithSongs.songs.length > 0) {
-            musicPlayer.play(playlistWithSongs.songs[0], playlistWithSongs.songs);
+            window.musicPlayer.play(playlistWithSongs.songs[0], playlistWithSongs.songs);
         } else {
             showToast('Playlist is empty', 'warning');
         }

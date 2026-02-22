@@ -78,7 +78,7 @@ class LibraryComponent {
         card.appendChild(info);
 
         card.addEventListener('click', () => {
-            musicPlayer.play(song, this.songs);
+            window.musicPlayer.play(song, this.songs);
         });
 
         return card;

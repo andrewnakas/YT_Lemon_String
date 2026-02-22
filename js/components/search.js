@@ -205,7 +205,7 @@ class SearchComponent {
      */
     playSong(song) {
         // Play this song and set queue to search results
-        musicPlayer.play(song, this.results);
+        window.musicPlayer.play(song, this.results);
 
         showToast(`Now playing: ${song.title}`, 'success', 2000);
     }

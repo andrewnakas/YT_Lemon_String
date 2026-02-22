@@ -35,17 +35,17 @@ class App {
 
         // Create and initialize components (AFTER storage is ready)
         try {
-            // Create component instances and expose globally
+            // Create component instances
             const player = new MusicPlayer();
             const library = new LibraryComponent();
             const playlist = new PlaylistComponent();
             const queue = new QueueComponent();
 
-            // Make them globally accessible (for other components to use)
-            window.musicPlayer = player;
-            window.libraryComponent = library;
-            window.playlistComponent = playlist;
-            window.queueComponent = queue;
+            // Make them globally accessible (both as window properties and global variables)
+            window.musicPlayer = musicPlayer = player;
+            window.libraryComponent = libraryComponent = library;
+            window.playlistComponent = playlistComponent = playlist;
+            window.queueComponent = queueComponent = queue;
 
             // Initialize them
             await player.init();

@@ -108,8 +108,8 @@ class QueueComponent {
 
         // Click to play
         card.addEventListener('click', () => {
-            musicPlayer.currentIndex = index;
-            musicPlayer.play(song);
+            window.musicPlayer.currentIndex = index;
+            window.musicPlayer.play(song);
         });
 
         return card;
