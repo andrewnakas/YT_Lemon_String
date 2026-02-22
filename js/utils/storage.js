@@ -136,6 +136,8 @@ class Storage {
      * Add or update item
      */
     async put(storeName, item) {
+        await this.ensureReady();
+
         if (this.useFallback) {
             const all = await this.getAll(storeName);
             const index = all.findIndex(i => i.id === item.id);
@@ -164,6 +166,8 @@ class Storage {
      * Delete item by ID
      */
     async delete(storeName, id) {
+        await this.ensureReady();
+
         if (this.useFallback) {
             const all = await this.getAll(storeName);
             const filtered = all.filter(item => item.id !== id);
@@ -185,6 +189,8 @@ class Storage {
      * Clear all items from store
      */
     async clear(storeName) {
+        await this.ensureReady();
+
         if (this.useFallback) {
             localStorage.removeItem(`${this.dbName}_${storeName}`);
             return;
@@ -204,6 +210,8 @@ class Storage {
      * Count items in store
      */
     async count(storeName) {
+        await this.ensureReady();
+
         if (this.useFallback) {
             const all = await this.getAll(storeName);
             return all.length;
