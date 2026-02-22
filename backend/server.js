@@ -76,14 +76,12 @@ app.listen(PORT, async () => {
         const puppeteer = require('puppeteer');
         const testBrowser = await puppeteer.launch({
             headless: 'new',
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
         await testBrowser.close();
-        console.log('✅ Puppeteer test successful');
+        console.log('✅ Puppeteer test successful - Chrome launched');
     } catch (error) {
         console.error('❌ Puppeteer test failed:', error.message);
-        console.error('Chrome executable path:', process.env.PUPPETEER_EXECUTABLE_PATH);
     }
 });
 

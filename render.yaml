@@ -14,7 +14,3 @@ services:
         value: https://andrewnakas.github.io
       - key: PORT
         value: 10000
-      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
-        value: true
-      - key: PUPPETEER_EXECUTABLE_PATH
-        value: /usr/bin/chromium-browser

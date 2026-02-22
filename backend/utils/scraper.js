@@ -12,9 +12,9 @@ async function searchYouTube(query, maxResults = 20) {
 
     try {
         // Launch browser with headless mode
+        // Don't specify executablePath - let Puppeteer use its bundled Chromium
         browser = await puppeteer.launch({
             headless: 'new',
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
