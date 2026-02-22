@@ -4,7 +4,7 @@
 
 const CONFIG = {
     // Backend API URL
-    BACKEND_URL: 'https://yt-lemon-backend.onrender.com',
+    BACKEND_URL: 'https://yt-lemon-string.onrender.com',
 
     // App Info
     APP_NAME: 'YT Lemon String',
