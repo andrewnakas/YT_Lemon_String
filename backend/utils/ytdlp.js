@@ -9,15 +9,7 @@ const { execSync } = require('child_process');
 
 // Find yt-dlp binary
 function findYtDlpPath() {
-    // Common paths where yt-dlp might be installed
-    const commonPaths = [
-        '/opt/render/.local/bin/yt-dlp',
-        '/usr/local/bin/yt-dlp',
-        '/usr/bin/yt-dlp',
-        'yt-dlp' // Let yt-dlp-wrap find it in PATH
-    ];
-
-    // First try 'which' command
+    // First try 'which' command (will find it in virtualenv or system PATH)
     try {
         const ytdlpPath = execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
         if (ytdlpPath && fs.existsSync(ytdlpPath)) {
@@ -28,19 +20,31 @@ function findYtDlpPath() {
         console.log('[yt-dlp] Binary not found via "which", trying common paths...');
     }
 
+    // Common paths where yt-dlp might be installed
+    const commonPaths = [
+        '/opt/render/project/.venv/bin/yt-dlp',  // Poetry virtualenv
+        '/opt/render/.local/bin/yt-dlp',         // User install
+        '/usr/local/bin/yt-dlp',                 // System install
+        '/usr/bin/yt-dlp',                       // System install
+        'yt-dlp'                                  // Let yt-dlp-wrap find it in PATH
+    ];
+
     // Try common paths
-    for (const path of commonPaths) {
-        if (path === 'yt-dlp') {
-            console.log(`[yt-dlp] Trying default: ${path}`);
-            return path;
+    for (const checkPath of commonPaths) {
+        if (checkPath === 'yt-dlp') {
+            console.log(`[yt-dlp] Trying default: ${checkPath}`);
+            return checkPath;
         }
-        if (fs.existsSync(path)) {
-            console.log(`[yt-dlp] Found binary at: ${path}`);
-            return path;
+        if (fs.existsSync(checkPath)) {
+            console.log(`[yt-dlp] Found binary at: ${checkPath}`);
+            return checkPath;
+        } else {
+            console.log(`[yt-dlp] Not found at: ${checkPath}`);
         }
     }
 
     console.error('[yt-dlp] Binary not found in any common location');
+    console.error('[yt-dlp] Checked paths:', commonPaths);
     return null;
 }
 
