@@ -1,125 +1,88 @@
 /* ========================================
-   YouTube Scraper using Puppeteer
+   YouTube Scraper using Axios + Cheerio (No Browser Needed!)
    ======================================== */
 
-const puppeteer = require('puppeteer');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 /**
- * Search YouTube for videos
+ * Search YouTube for videos - lightweight, no Puppeteer!
  */
 async function searchYouTube(query, maxResults = 20) {
-    let browser = null;
-
     try {
-        // Launch browser with headless mode
-        // Don't specify executablePath - let Puppeteer use its bundled Chromium
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu',
-                '--disable-software-rasterizer',
-                '--disable-dev-tools',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--window-size=1920x1080'
-            ]
-        });
+        console.log(`[Scraper] Searching: ${query}`);
 
-        const page = await browser.newPage();
-
-        // Set viewport and user agent
-        await page.setViewport({ width: 1920, height: 1080 });
-        await page.setUserAgent(
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        );
-
-        // Navigate to YouTube search
+        // Fetch YouTube search page
         const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-        console.log(`[Scraper] Searching: ${searchUrl}`);
 
-        await page.goto(searchUrl, {
-            waitUntil: 'networkidle2',
-            timeout: 30000
+        const response = await axios.get(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9'
+            },
+            timeout: 10000
         });
 
-        // Wait for results to load
-        await page.waitForSelector('ytd-video-renderer', { timeout: 10000 });
+        // Extract video data from YouTube's initial data
+        const html = response.data;
 
-        // Extract video data
-        const results = await page.evaluate((maxResults) => {
-            const videos = [];
-            const elements = document.querySelectorAll('ytd-video-renderer');
+        // YouTube embeds data in a script tag
+        const initialDataMatch = html.match(/var ytInitialData = ({.+?});/);
 
-            for (let i = 0; i < Math.min(elements.length, maxResults); i++) {
-                const el = elements[i];
+        if (!initialDataMatch) {
+            throw new Error('Could not find YouTube data in page');
+        }
+
+        const data = JSON.parse(initialDataMatch[1]);
+
+        // Navigate to video results
+        const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+
+        const videos = [];
+
+        for (const section of contents) {
+            const items = section?.itemSectionRenderer?.contents || [];
+
+            for (const item of items) {
+                if (videos.length >= maxResults) break;
+
+                const videoRenderer = item.videoRenderer;
+                if (!videoRenderer) continue;
 
                 try {
-                    // Title and video ID
-                    const titleEl = el.querySelector('#video-title');
-                    const videoId = titleEl?.getAttribute('href')?.split('v=')[1]?.split('&')[0];
-                    const title = titleEl?.getAttribute('title') || titleEl?.textContent?.trim();
+                    const videoId = videoRenderer.videoId;
+                    const title = videoRenderer.title?.runs?.[0]?.text || videoRenderer.title?.simpleText;
+                    const artist = videoRenderer.ownerText?.runs?.[0]?.text || videoRenderer.shortBylineText?.runs?.[0]?.text;
 
-                    // Channel (artist)
-                    const channelEl = el.querySelector('#channel-name a') ||
-                                    el.querySelector('yt-formatted-string.ytd-channel-name a');
-                    const artist = channelEl?.textContent?.trim();
+                    // Get thumbnail
+                    const thumbnails = videoRenderer.thumbnail?.thumbnails || [];
+                    const thumbnail = thumbnails[thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 
-                    // Thumbnail
-                    const thumbnailEl = el.querySelector('img');
-                    let thumbnail = thumbnailEl?.src;
+                    // Get duration
+                    const lengthText = videoRenderer.lengthText?.simpleText || '';
 
-                    // Sometimes thumbnail is in data-thumb attribute
-                    if (!thumbnail || thumbnail.includes('data:image')) {
-                        thumbnail = thumbnailEl?.getAttribute('data-thumb') ||
-                                  thumbnailEl?.getAttribute('src') ||
-                                  `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-                    }
-
-                    // Duration
-                    const durationEl = el.querySelector('ytd-thumbnail-overlay-time-status-renderer span') ||
-                                     el.querySelector('#time-status span');
-                    const duration = durationEl?.textContent?.trim();
-
-                    // Only add if we have required data
                     if (videoId && title && artist) {
                         videos.push({
                             id: videoId,
                             title: title,
                             artist: artist,
-                            thumbnail: thumbnail,
-                            duration: duration || ''
+                            thumbnail: thumbnail.startsWith('//') ? 'https:' + thumbnail : thumbnail,
+                            duration: lengthText
                         });
                     }
                 } catch (err) {
-                    console.error('Error parsing video element:', err);
+                    console.error('[Scraper] Error parsing video:', err.message);
                 }
             }
 
-            return videos;
-        }, maxResults);
+            if (videos.length >= maxResults) break;
+        }
 
-        await browser.close();
-
-        console.log(`[Scraper] Found ${results.length} results`);
-        return results;
+        console.log(`[Scraper] Found ${videos.length} results`);
+        return videos;
 
     } catch (error) {
         console.error('[Scraper] Error:', error.message);
-        console.error('[Scraper] Full error:', error);
-
-        if (browser) {
-            try {
-                await browser.close();
-            } catch (closeError) {
-                console.error('[Scraper] Error closing browser:', closeError);
-            }
-        }
-
         throw new Error(`Scraping failed: ${error.message}`);
     }
 }

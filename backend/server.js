@@ -61,7 +61,7 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
     console.log('=================================');
     console.log('YT Lemon String Backend Server');
     console.log('=================================');
@@ -69,20 +69,8 @@ app.listen(PORT, async () => {
     console.log(`Health check: http://localhost:${PORT}/health`);
     console.log(`Search API: http://localhost:${PORT}/api/search?q=query`);
     console.log(`Download API: http://localhost:${PORT}/api/download`);
+    console.log('✅ Using lightweight scraper (no browser needed!)');
     console.log('=================================');
-
-    // Test Puppeteer on startup
-    try {
-        const puppeteer = require('puppeteer');
-        const testBrowser = await puppeteer.launch({
-            headless: 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
-        await testBrowser.close();
-        console.log('✅ Puppeteer test successful - Chrome launched');
-    } catch (error) {
-        console.error('❌ Puppeteer test failed:', error.message);
-    }
 });
 
 // Graceful shutdown
