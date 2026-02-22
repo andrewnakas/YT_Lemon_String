@@ -81,7 +81,7 @@ async function downloadAudio(videoId) {
         // Ensure yt-dlp is available
         const wrap = await getYtDlpWrap();
 
-        // Download options with SponsorBlock to remove ads/sponsors
+        // Download options with bot-bypass and SponsorBlock
         const options = [
             videoUrl,
             '-f', 'bestaudio',
@@ -91,9 +91,18 @@ async function downloadAudio(videoId) {
             '-o', '-', // Output to stdout
             '--no-playlist',
             '--sponsorblock-remove', 'all', // Remove sponsor segments, intros, outros
+
+            // Bot detection bypass
+            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            '--referer', 'https://www.youtube.com/',
+            '--add-header', 'Accept-Language:en-US,en;q=0.9',
+            '--add-header', 'Sec-Fetch-Mode:navigate',
+            '--extractor-args', 'youtube:player_client=android,web',
+            '--extractor-retries', '3',
+            '--no-check-certificate',
+
             '--no-warnings',
-            '--quiet',
-            '--no-check-certificate'
+            '--quiet'
         ];
 
         console.log(`[yt-dlp] Executing with options:`, options.slice(1).join(' '));
