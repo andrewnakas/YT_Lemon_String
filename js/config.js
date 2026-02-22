@@ -3,8 +3,8 @@
    ======================================== */
 
 const CONFIG = {
-    // Backend API URL - UPDATE THIS after deploying backend
-    BACKEND_URL: 'http://localhost:3000', // Change to your Render/Railway URL
+    // Backend API URL
+    BACKEND_URL: 'https://yt-lemon-backend.onrender.com',
 
     // App Info
     APP_NAME: 'YT Lemon String',
