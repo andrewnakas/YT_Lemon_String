@@ -77,24 +77,31 @@ class BackendAPI {
             const response = await fetch(`${this.baseURL}/api/download`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ videoId })
+                body: JSON.stringify({ videoId, title })
             });
 
             if (!response.ok) {
-                throw new Error(`Download failed: ${response.statusText}`);
+                // Try to get error details from response
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(`Download failed: ${errorData.error || response.statusText}`);
             }
 
-            // Get blob from response
-            const blob = await response.blob();
+            // Check if response is JSON (desktop mode) or blob (web mode)
+            const contentType = response.headers.get('content-type');
 
-            // Sanitize filename
-            const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
-
-            // Download file
-            downloadBlob(blob, filename);
-
-            hideLoading();
-            showToast(CONFIG.SUCCESS.DOWNLOAD_COMPLETE, 'success');
+            if (contentType && contentType.includes('application/json')) {
+                // Desktop mode - file saved to Apple Music folder
+                const result = await response.json();
+                hideLoading();
+                showToast(result.message || 'Downloaded to Apple Music!', 'success');
+            } else {
+                // Web mode - download blob to browser
+                const blob = await response.blob();
+                const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
+                downloadBlob(blob, filename);
+                hideLoading();
+                showToast(CONFIG.SUCCESS.DOWNLOAD_COMPLETE, 'success');
+            }
 
             return true;
         } catch (error) {

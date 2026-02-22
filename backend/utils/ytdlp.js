@@ -87,40 +87,45 @@ async function getYtDlpWrap() {
 
 /**
  * Download audio from YouTube video
+ * @param {string} videoId - YouTube video ID
+ * @param {string} outputPath - Optional file path to save (defaults to stdout stream)
  */
-async function downloadAudio(videoId) {
+async function downloadAudio(videoId, outputPath = null) {
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
         console.log(`[yt-dlp] Downloading: ${videoUrl}`);
+        if (outputPath) {
+            console.log(`[yt-dlp] Output to file: ${outputPath}`);
+        }
 
         // Ensure yt-dlp is available
         const wrap = await getYtDlpWrap();
 
-        // Download options using same techniques as command-line yt-dlp
+        // Download options - simplified and more compatible
         const options = [
             videoUrl,
-            '-f', 'bestaudio',
+            '-f', 'bestaudio/best', // Try best audio, fallback to best quality
             '-x', // Extract audio
             '--audio-format', 'mp3',
             '--audio-quality', '0', // Best quality
-            '-o', '-', // Output to stdout
+            '-o', outputPath || '-', // Output to file or stdout
             '--no-playlist',
-            '--sponsorblock-remove', 'all', // Remove sponsor segments, intros, outros
 
-            // Advanced bot detection bypass (same as command line)
-            '--extractor-args', 'youtube:player_client=ios,android_music',
-            '--user-agent', 'com.google.ios.youtube/19.09.3 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X)',
-            '--geo-bypass',
-            '--force-ipv4',
-            '--sleep-requests', '1',
-            '--socket-timeout', '30',
-            '--retries', '10',
-            '--fragment-retries', '10',
+            // Remove ads and sponsors
+            '--sponsorblock-remove', 'sponsor,intro,outro,selfpromo,interaction',
 
+            // Compatibility and reliability
+            '--prefer-free-formats',
             '--no-check-certificate',
-            '--no-warnings',
-            '--quiet'
+            '--geo-bypass',
+
+            // Less aggressive options that work better
+            '--retries', '5',
+            '--fragment-retries', '5',
+
+            // Only show errors
+            '--no-warnings'
         ];
 
         console.log(`[yt-dlp] Executing with options:`, options.slice(1).join(' '));

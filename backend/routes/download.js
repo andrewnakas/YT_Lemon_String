@@ -4,8 +4,17 @@
 
 const express = require('express');
 const { downloadAudio, getMetadata } = require('../utils/ytdlp');
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
 const router = express.Router();
+
+// Apple Music auto-import folder
+const APPLE_MUSIC_AUTO_ADD = path.join(
+    os.homedir(),
+    'Music/Music/Media/Automatically Add to Music.localized'
+);
 
 /**
  * POST /api/download
@@ -13,7 +22,7 @@ const router = express.Router();
  */
 router.post('/download', async (req, res, next) => {
     try {
-        const { videoId } = req.body;
+        const { videoId, title } = req.body;
 
         // Validate videoId
         if (!videoId || videoId.trim().length === 0) {
@@ -24,12 +33,52 @@ router.post('/download', async (req, res, next) => {
 
         console.log(`[Download] Request for video: ${videoId}`);
 
-        // Get audio stream
+        const isDesktop = process.env.NODE_ENV === 'desktop';
+
+        // Desktop mode: Save to Apple Music auto-import folder
+        if (isDesktop) {
+            // Check if Apple Music folder exists
+            const appleMusicExists = fs.existsSync(APPLE_MUSIC_AUTO_ADD);
+
+            if (appleMusicExists) {
+                console.log('[Download] Saving to Apple Music auto-import folder');
+
+                // Sanitize filename
+                const sanitizedTitle = (title || videoId)
+                    .replace(/[<>:"/\\|?*]/g, '')
+                    .substring(0, 200);
+                const filename = `${sanitizedTitle}.mp3`;
+                const outputPath = path.join(APPLE_MUSIC_AUTO_ADD, filename);
+
+                // Download to file
+                const stream = await downloadAudio(videoId, outputPath);
+
+                // Wait for download to complete
+                await new Promise((resolve, reject) => {
+                    stream.on('close', resolve);
+                    stream.on('error', reject);
+                });
+
+                console.log(`[Download] Saved to: ${outputPath}`);
+                console.log('[Download] Apple Music will auto-import this file');
+
+                return res.json({
+                    success: true,
+                    message: 'Downloaded! Apple Music will import automatically.',
+                    path: outputPath
+                });
+            } else {
+                console.warn('[Download] Apple Music folder not found, streaming to browser instead');
+            }
+        }
+
+        // Web mode or fallback: Stream to client
         const stream = await downloadAudio(videoId);
 
         // Set response headers
         res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Content-Disposition', `attachment; filename="${videoId}.mp3"`);
+        const sanitizedTitle = (title || videoId).replace(/[<>:"/\\|?*]/g, '');
+        res.setHeader('Content-Disposition', `attachment; filename="${sanitizedTitle}.mp3"`);
 
         // Pipe stream to response
         stream.pipe(res);
