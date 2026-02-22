@@ -51,6 +51,13 @@ app.get('/health', (req, res) => {
 app.use('/api', searchRoute);
 app.use('/api', downloadRoute);
 
+// In desktop mode, serve index.html for root and undefined routes
+if (IS_DESKTOP) {
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(__dirname, '../index.html'));
+    });
+}
+
 // Error handling middleware
 app.use((error, req, res, next) => {
     console.error('[Error]', error);

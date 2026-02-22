@@ -76,14 +76,53 @@ async function createWindow() {
         icon: path.join(frontendPath, 'assets/icons/icon-512x512.png')
     });
 
-    // Start backend server first
+    // Show loading screen first
+    mainWindow.loadURL(`data:text/html,
+        <html>
+            <head>
+                <style>
+                    body {
+                        margin: 0;
+                        background: #121212;
+                        color: #1db954;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 100vh;
+                        flex-direction: column;
+                    }
+                    .spinner {
+                        width: 50px;
+                        height: 50px;
+                        border: 4px solid #333;
+                        border-top-color: #1db954;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    }
+                    @keyframes spin { to { transform: rotate(360deg); } }
+                    h1 { margin-top: 20px; font-size: 24px; }
+                    p { color: #b3b3b3; }
+                </style>
+            </head>
+            <body>
+                <div class="spinner"></div>
+                <h1>YT Lemon String</h1>
+                <p>Starting backend server...</p>
+            </body>
+        </html>
+    `);
+
+    // Start backend server
     await startBackendServer();
 
     // Load the app from local server
     const appUrl = `http://localhost:${BACKEND_PORT}`;
     console.log('[Electron] Loading app from:', appUrl);
 
-    // Serve static files - we need to update backend to serve frontend
+    // Wait a bit more for server to fully initialize
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     mainWindow.loadURL(appUrl);
 
     // Open DevTools in development
