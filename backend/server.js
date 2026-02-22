@@ -13,6 +13,7 @@ const { checkInstalled } = require('./utils/ytdlp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_DESKTOP = process.env.NODE_ENV === 'desktop';
 
 // Middleware
 app.use(cors({
@@ -23,6 +24,13 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static frontend files in desktop mode
+if (IS_DESKTOP) {
+    const frontendPath = path.join(__dirname, '..');
+    console.log('[Desktop Mode] Serving static files from:', frontendPath);
+    app.use(express.static(frontendPath));
+}
 
 // Request logging
 app.use((req, res, next) => {

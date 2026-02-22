@@ -18,24 +18,40 @@ if (!fs.existsSync(YTDLP_DIR)) {
 
 // Find or download yt-dlp binary
 async function ensureYtDlp() {
-    // First check if we already downloaded it
+    // In desktop mode, prefer system yt-dlp (no bot detection on residential IPs!)
+    const isDesktop = process.env.NODE_ENV === 'desktop';
+
+    // Try to find system yt-dlp first (especially important for desktop)
+    try {
+        const ytdlpPath = execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
+        if (ytdlpPath && fs.existsSync(ytdlpPath)) {
+            console.log(`[yt-dlp] Found system binary at: ${ytdlpPath}`);
+            if (isDesktop) {
+                console.log('[yt-dlp] ✅ Using local yt-dlp (no bot detection!)');
+            }
+            return ytdlpPath;
+        }
+    } catch (error) {
+        console.log('[yt-dlp] System binary not found');
+    }
+
+    // Check if we already downloaded it
     if (fs.existsSync(YTDLP_PATH)) {
         console.log(`[yt-dlp] Using cached binary at: ${YTDLP_PATH}`);
         return YTDLP_PATH;
     }
 
-    // Try to find system yt-dlp
-    try {
-        const ytdlpPath = execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
-        if (ytdlpPath && fs.existsSync(ytdlpPath)) {
-            console.log(`[yt-dlp] Found system binary at: ${ytdlpPath}`);
-            return ytdlpPath;
-        }
-    } catch (error) {
-        console.log('[yt-dlp] System binary not found, downloading...');
+    // If in desktop mode and no system yt-dlp, show helpful message
+    if (isDesktop) {
+        console.log('[yt-dlp] ⚠️  System yt-dlp not found');
+        console.log('[yt-dlp] Install it for best results:');
+        console.log('[yt-dlp]   Mac: brew install yt-dlp');
+        console.log('[yt-dlp]   Linux: pip3 install yt-dlp');
+        console.log('[yt-dlp]   Windows: pip3 install yt-dlp');
+        console.log('[yt-dlp] Downloading fallback binary...');
     }
 
-    // Download yt-dlp using yt-dlp-wrap
+    // Download yt-dlp using yt-dlp-wrap (fallback)
     try {
         console.log('[yt-dlp] Downloading binary...');
         await YTDlpWrap.downloadFromGithub(YTDLP_PATH);
@@ -104,8 +120,7 @@ async function downloadAudio(videoId) {
 
             '--no-check-certificate',
             '--no-warnings',
-            '--quiet',
-            '--no-call-home'
+            '--quiet'
         ];
 
         console.log(`[yt-dlp] Executing with options:`, options.slice(1).join(' '));

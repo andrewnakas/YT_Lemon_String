@@ -1,0 +1,61 @@
+{
+  "name": "yt-lemon-string-desktop",
+  "version": "1.0.0",
+  "description": "YT Lemon String - Desktop Music Player",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.ytlemonstring.app",
+    "productName": "YT Lemon String",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "../index.html",
+      "../css/**/*",
+      "../js/**/*",
+      "../assets/**/*",
+      "../manifest.json",
+      "../backend/**/*",
+      "!../backend/node_modules",
+      "../backend/node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "../assets/icons/icon-512x512.png",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "icon": "../assets/icons/icon-512x512.png",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "icon": "../assets/icons/icon-512x512.png",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Audio"
+    }
+  }
+}

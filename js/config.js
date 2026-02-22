@@ -3,8 +3,10 @@
    ======================================== */
 
 const CONFIG = {
-    // Backend API URL
-    BACKEND_URL: 'https://yt-lemon-string.onrender.com',
+    // Backend API URL (auto-detect Electron vs Web)
+    BACKEND_URL: (typeof window !== 'undefined' && window.electronAPI)
+        ? 'http://localhost:3456'
+        : 'https://yt-lemon-string.onrender.com',
 
     // App Info
     APP_NAME: 'YT Lemon String',
