@@ -12,7 +12,7 @@ class QueueComponent {
         this.queue = [];
         this.currentIndex = -1;
 
-        this.init();
+        // Don't init here - wait for app to call init() after storage is ready
     }
 
     init() {

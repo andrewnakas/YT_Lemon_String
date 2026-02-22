@@ -37,7 +37,7 @@ class MusicPlayer {
             downloadBtn: $('#downloadBtn')
         };
 
-        this.init();
+        // Don't init here - wait for app to call init() after storage is ready
     }
 
     /**

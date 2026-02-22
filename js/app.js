@@ -33,6 +33,17 @@ class App {
             showToast('Storage initialization failed', 'error');
         }
 
+        // Initialize components (after storage is ready)
+        try {
+            if (typeof musicPlayer !== 'undefined') await musicPlayer.init();
+            if (typeof libraryComponent !== 'undefined') await libraryComponent.init();
+            if (typeof playlistComponent !== 'undefined') await playlistComponent.init();
+            if (typeof queueComponent !== 'undefined') await queueComponent.init();
+            console.log('Components initialized');
+        } catch (error) {
+            console.error('Component initialization error:', error);
+        }
+
         // Attach event listeners
         this.attachEventListeners();
 

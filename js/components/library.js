@@ -9,7 +9,7 @@ class LibraryComponent {
         };
 
         this.songs = [];
-        this.init();
+        // Don't init here - wait for app to call init() after storage is ready
     }
 
     async init() {
