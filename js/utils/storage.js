@@ -7,30 +7,51 @@ class Storage {
         this.db = null;
         this.dbName = CONFIG.DB_NAME;
         this.dbVersion = CONFIG.DB_VERSION;
+        this.initPromise = null;
+        this.isReady = false;
+    }
+
+    /**
+     * Wait for storage to be ready
+     */
+    async ensureReady() {
+        if (this.isReady) return;
+        if (this.initPromise) {
+            await this.initPromise;
+            return;
+        }
+        // If init hasn't been called yet, call it
+        await this.init();
     }
 
     /**
      * Initialize database
      */
     async init() {
-        if (!supportsIndexedDB()) {
-            console.warn('IndexedDB not supported. Using fallback storage.');
-            return this.initFallback();
-        }
+        if (this.initPromise) return this.initPromise;
 
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, this.dbVersion);
+        this.initPromise = (async () => {
+            if (!supportsIndexedDB()) {
+                console.warn('IndexedDB not supported. Using fallback storage.');
+                await this.initFallback();
+                this.isReady = true;
+                return;
+            }
 
-            request.onerror = () => {
-                console.error('IndexedDB error:', request.error);
-                reject(request.error);
-            };
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(this.dbName, this.dbVersion);
 
-            request.onsuccess = () => {
-                this.db = request.result;
-                console.log('IndexedDB initialized');
-                resolve();
-            };
+                request.onerror = () => {
+                    console.error('IndexedDB error:', request.error);
+                    reject(request.error);
+                };
+
+                request.onsuccess = () => {
+                    this.db = request.result;
+                    this.isReady = true;
+                    console.log('IndexedDB initialized');
+                    resolve();
+                };
 
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
@@ -55,7 +76,10 @@ class Storage {
                     db.createObjectStore('settings', { keyPath: 'key' });
                 }
             };
-        });
+            });
+        })();
+
+        return this.initPromise;
     }
 
     /**
@@ -70,6 +94,8 @@ class Storage {
      * Get all items from a store
      */
     async getAll(storeName) {
+        await this.ensureReady();
+
         if (this.useFallback) {
             const data = localStorage.getItem(`${this.dbName}_${storeName}`);
             return data ? JSON.parse(data) : [];
@@ -89,6 +115,8 @@ class Storage {
      * Get item by ID
      */
     async get(storeName, id) {
+        await this.ensureReady();
+
         if (this.useFallback) {
             const all = await this.getAll(storeName);
             return all.find(item => item.id === id);
