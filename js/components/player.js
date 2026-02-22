@@ -37,13 +37,13 @@ class MusicPlayer {
             downloadBtn: $('#downloadBtn')
         };
 
-        // Don't init here - wait for app to call init() after storage is ready
+        // Init will be called by app.js after storage is ready
     }
 
     /**
      * Initialize player
      */
-    init() {
+    async init() {
         // Wait for YouTube iframe API to load
         if (typeof YT !== 'undefined' && YT.Player) {
             this.createPlayer();
@@ -571,4 +571,5 @@ class MusicPlayer {
 }
 
 // Create global player instance
-const musicPlayer = new MusicPlayer();
+// Component will be instantiated by app.js after storage is ready
+let musicPlayer;

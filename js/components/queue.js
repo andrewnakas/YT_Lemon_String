@@ -116,4 +116,5 @@ class QueueComponent {
     }
 }
 
-const queueComponent = new QueueComponent();
+// Component will be instantiated by app.js after storage is ready
+let queueComponent;

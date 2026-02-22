@@ -85,4 +85,5 @@ class LibraryComponent {
     }
 }
 
-const libraryComponent = new LibraryComponent();
+// Component will be instantiated by app.js after storage is ready
+let libraryComponent;

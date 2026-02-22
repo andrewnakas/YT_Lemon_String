@@ -133,4 +133,5 @@ class PlaylistComponent {
     }
 }
 
-const playlistComponent = new PlaylistComponent();
+// Component will be instantiated by app.js after storage is ready
+let playlistComponent;
