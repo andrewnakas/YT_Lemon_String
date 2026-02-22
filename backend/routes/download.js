@@ -10,11 +10,53 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// Apple Music auto-import folder
-const APPLE_MUSIC_AUTO_ADD = path.join(
-    os.homedir(),
-    'Music/Music/Media/Automatically Add to Music.localized'
-);
+// Possible Apple Music auto-import folders (try multiple locations)
+const APPLE_MUSIC_PATHS = [
+    path.join(os.homedir(), 'Music/Music/Media/Automatically Add to Music.localized'),
+    path.join(os.homedir(), 'Music/Music/Media.localized/Automatically Add to Music.localized'),
+    path.join(os.homedir(), 'Music/iTunes/iTunes Media/Automatically Add to iTunes.localized'),
+    path.join(os.homedir(), 'Music/iTunes/iTunes Media/Automatically Add to iTunes')
+];
+
+// Default download folder
+const DOWNLOADS_FOLDER = path.join(os.homedir(), 'Downloads');
+
+/**
+ * Find or create Apple Music auto-import folder
+ */
+function getDownloadFolder() {
+    // Check for custom download path from environment variable
+    const customPath = process.env.DOWNLOAD_PATH;
+    if (customPath && fs.existsSync(customPath)) {
+        console.log(`[Download] Using custom download folder: ${customPath}`);
+        return { path: customPath, type: 'custom' };
+    }
+
+    // Try to find existing Apple Music folder
+    for (const musicPath of APPLE_MUSIC_PATHS) {
+        if (fs.existsSync(musicPath)) {
+            console.log(`[Download] Found Apple Music folder: ${musicPath}`);
+            return { path: musicPath, type: 'apple-music' };
+        }
+    }
+
+    // Try to create the primary Apple Music folder
+    const primaryPath = APPLE_MUSIC_PATHS[0];
+    try {
+        const musicDir = path.dirname(primaryPath);
+        if (fs.existsSync(musicDir)) {
+            fs.mkdirSync(primaryPath, { recursive: true });
+            console.log(`[Download] Created Apple Music folder: ${primaryPath}`);
+            return { path: primaryPath, type: 'apple-music' };
+        }
+    } catch (error) {
+        console.log(`[Download] Could not create Apple Music folder: ${error.message}`);
+    }
+
+    // Fall back to Downloads folder
+    console.log(`[Download] Using Downloads folder: ${DOWNLOADS_FOLDER}`);
+    return { path: DOWNLOADS_FOLDER, type: 'downloads' };
+}
 
 /**
  * POST /api/download
@@ -35,41 +77,40 @@ router.post('/download', async (req, res, next) => {
 
         const isDesktop = process.env.NODE_ENV === 'desktop';
 
-        // Desktop mode: Save to Apple Music auto-import folder
+        // Desktop mode: Save to local folder
         if (isDesktop) {
-            // Check if Apple Music folder exists
-            const appleMusicExists = fs.existsSync(APPLE_MUSIC_AUTO_ADD);
+            const downloadFolder = getDownloadFolder();
 
-            if (appleMusicExists) {
-                console.log('[Download] Saving to Apple Music auto-import folder');
+            // Sanitize filename
+            const sanitizedTitle = (title || videoId)
+                .replace(/[<>:"/\\|?*]/g, '')
+                .substring(0, 200);
+            const filename = `${sanitizedTitle}.mp3`;
+            const outputPath = path.join(downloadFolder.path, filename);
 
-                // Sanitize filename
-                const sanitizedTitle = (title || videoId)
-                    .replace(/[<>:"/\\|?*]/g, '')
-                    .substring(0, 200);
-                const filename = `${sanitizedTitle}.mp3`;
-                const outputPath = path.join(APPLE_MUSIC_AUTO_ADD, filename);
+            console.log(`[Download] Saving to: ${outputPath}`);
 
-                // Download to file
-                const stream = await downloadAudio(videoId, outputPath);
+            // Download to file
+            const stream = await downloadAudio(videoId, outputPath);
 
-                // Wait for download to complete
-                await new Promise((resolve, reject) => {
-                    stream.on('close', resolve);
-                    stream.on('error', reject);
-                });
+            // Wait for download to complete
+            await new Promise((resolve, reject) => {
+                stream.on('close', resolve);
+                stream.on('error', reject);
+            });
 
-                console.log(`[Download] Saved to: ${outputPath}`);
-                console.log('[Download] Apple Music will auto-import this file');
+            console.log(`[Download] Saved successfully!`);
 
-                return res.json({
-                    success: true,
-                    message: 'Downloaded! Apple Music will import automatically.',
-                    path: outputPath
-                });
-            } else {
-                console.warn('[Download] Apple Music folder not found, streaming to browser instead');
-            }
+            const message = downloadFolder.type === 'apple-music'
+                ? 'Downloaded! Apple Music will import automatically.'
+                : `Downloaded to ${path.basename(downloadFolder.path)} folder!`;
+
+            return res.json({
+                success: true,
+                message,
+                path: outputPath,
+                folder: downloadFolder.type
+            });
         }
 
         // Web mode or fallback: Stream to client
