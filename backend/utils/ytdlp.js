@@ -101,11 +101,17 @@ async function getMetadata(videoId) {
  */
 async function checkInstalled() {
     try {
+        if (!ytdlpBinary) {
+            console.error('[yt-dlp] Binary path not found');
+            return false;
+        }
+
         const version = await ytDlpWrap.getVersion();
         console.log(`[yt-dlp] Version: ${version}`);
+        console.log(`[yt-dlp] Binary path: ${ytdlpBinary}`);
         return true;
     } catch (error) {
-        console.error('[yt-dlp] Not installed or not accessible');
+        console.error('[yt-dlp] Not installed or not accessible:', error.message);
         console.error('[yt-dlp] Run: pip3 install yt-dlp');
         return false;
     }

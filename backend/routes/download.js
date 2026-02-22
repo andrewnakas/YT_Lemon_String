@@ -43,7 +43,14 @@ router.post('/download', async (req, res, next) => {
 
     } catch (error) {
         console.error('[Download] Error:', error);
-        next(error);
+
+        // Return detailed error to client
+        if (!res.headersSent) {
+            res.status(500).json({
+                error: error.message || 'Download failed',
+                details: error.toString()
+            });
+        }
     }
 });
 
